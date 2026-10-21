@@ -1,0 +1,10 @@
+# Quebras de linha. Sem isto, o .bat ja tinha ido pra LF em alguma edicao
+# (visto em 2026-09-14: 101 linhas LF, 2 CRLF) - o CLAUDE.md alertava que
+# arquivo .bat precisa ser CRLF, mas nada garantia isso.
+* text=auto
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.py text eol=lf
+*.md text eol=lf

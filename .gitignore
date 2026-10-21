@@ -1,0 +1,16 @@
+# Saida gerada pelos scripts a cada execucao - nao e codigo-fonte, so acumula.
+# O historico de bugs/evidencias fica documentado no README e na pagina de progresso.
+logs/*
+prints/*
+!logs/.gitkeep
+!prints/.gitkeep
+
+# Pacote de distribuicao gerado por "Criar pacote.bat" - saida, regeneravel
+entrega/
+
+# Python
+__pycache__/
+*.pyc
+
+# Configuracao local do Claude Code (por maquina/sessao, nao e compartilhada)
+.claude/
