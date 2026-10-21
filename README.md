@@ -1,13 +1,46 @@
 # Automação de Withholding Tax — SAP MDG (Web Dynpro)
 
-> Automação em Python + Selenium (Edge) que insere os códigos de Withholding Tax em
-> Change Requests de criação de fornecedor no SAP MDG, confere cada linha, salva e envia
-> a CR para aprovação. Inclui uma suíte offline (`codigo/testar_parser_offline.py`) que
-> roda contra DOMs sintéticos no Edge headless, sem acesso ao SAP.
->
-> Esta é uma cópia pública: endereços, números de CR, nomes e dados de fornecedores
-> foram trocados por exemplos, e as notas internas de desenvolvimento não estão aqui.
-> Para usar, ajuste as URLs em `codigo/config.py`. O texto abaixo é o manual de uso.
+Automação em Python + Selenium (Edge) que insere os códigos de Withholding Tax em Change
+Requests de criação de fornecedor no SAP MDG, confere cada linha, salva e envia a CR para
+aprovação.
+
+## O problema
+
+- Cada CR de criação de fornecedor precisa de **64 códigos de Withholding Tax**, cadastrados
+  um a um na mesma tela: New, Type, Code, marcar "Subject to Withholding Tax", Done. São mais
+  de 300 cliques e digitações por CR.
+- O time recebe **cerca de 28 CRs por mês**: quase 1.800 linhas e umas 5 horas mensais de
+  digitação repetitiva (cerca de 11 minutos por CR, feita à mão).
+- Nesse volume, um código trocado, um checkbox esquecido ou uma linha duplicada passam com
+  facilidade, e só aparecem depois, na aprovação ou no uso do cadastro.
+- A ferramenta usada até então para esse trabalho ia deixar de estar disponível.
+
+## Como a automação ajuda
+
+- **Roda sozinha.** Quem usa cola a lista de CRs, confirma uma vez e faz o login; o resto
+  acontece sem ninguém olhando. Os 11 minutos de digitação por CR viram alguns minutos por
+  lote: colar a lista, confirmar e ler o resumo.
+- **Confere o que faz.** Cada linha é conferida na tabela logo depois de inserida; no fim, a
+  tabela inteira é relida, o detalhe do primeiro e do último código é aberto, o Save só conta
+  quando o SAP o confirma na tela, e o Submit é clicado uma única vez.
+- **Para com segurança na dúvida.** Se algo não bate, ou se o SAP mostra sinal de
+  indisponibilidade, ela para antes de salvar e diz o motivo. Nunca deixa uma CR gravada pela
+  metade e nunca envia duas vezes.
+- **Acompanha o ritmo do SAP.** Cada etapa espera o SAP terminar, com aviso a cada 10
+  segundos, em vez de falhar por tempo. Isso veio da primeira rodada em produção: o SAP
+  estava bem mais lento que o de testes, a automação parou sem gravar nada, e a espera foi
+  refeita para tolerar lentidão.
+- **Login sempre manual.** O programa nunca digita nem guarda senha.
+
+Situação: validada em pré-produção; implantação em produção em andamento. Uma suíte offline
+(`codigo/testar_parser_offline.py`, 367 checagens) roda contra páginas simuladas no Edge
+headless, sem acesso ao SAP.
+
+> Esta é uma cópia pública: endereços, números de CR, nomes e dados de fornecedores foram
+> trocados por exemplos, e as notas internas de desenvolvimento não estão aqui. Para usar,
+> ajuste as URLs em `codigo/config.py`.
+
+## Manual de uso
 
 Este programa insere os 64 códigos de Withholding Tax nas Change Requests (CRs) de
 **criação de fornecedor**, salva e envia cada CR para aprovação, tudo numa execução só.
@@ -90,7 +123,7 @@ Concluido. OK: 3 | Com ressalva: 0 | Falha: 0
 - **Com ressalva** — o programa **já clicou Save ou Submit** nessa CR, mas não conseguiu
   provar o resultado. O lote para ali.
   **Não rode essa CR de novo.** Abra-a no SAP e veja como ela ficou (os 64 códigos estão
-  lá? ela foi enviada?). Mande o log e os prints para quem cuida da automação.
+  lá? ela foi enviada?).
 - **Falha** — o programa parou **antes** de salvar: nada foi gravado. A CR pode ficar
   **travada** no SAP por algumas horas (às vezes até um dia) e só o próprio SAP libera.
   Tentar de novo na hora costuma falhar por causa da trava: tente mais tarde ou no dia
@@ -106,12 +139,3 @@ começar.
 
 O `Rodar automacao.bat` também resume no final: **[CONFERIR]** quer dizer "com ressalva,
 não repita"; **[ATENCAO]** quer dizer falha ou CRs que ficaram para trás.
-
-## Se algo der errado
-
-Guarde o arquivo mais recente da pasta **`logs`** e as imagens da pasta **`prints`** e
-mande para quem cuida da automação, com o número da CR. Se o SAP mostrou alguma mensagem
-na tela (de encerramento, de sessão expirada), anote o texto e o horário e mande junto.
-Não apague essas pastas antes disso.
-
-O programa nunca digita nem guarda sua senha: o login é sempre feito por você.
